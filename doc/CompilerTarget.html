@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+	<title>Documentation for CompilerTarget</title>
+	<link rel="stylesheet" href="styles.css" type="text/css" title="main CSS" charset="utf-8"/>
+</head>
+<body>
+	<h1>ChalDoc > CompilerTarget</h1>
+	<p>Primary Virtual Machine specification. This interface defines the various operations that can occur in the Chaldea VM pipeline. The ChalVM is designed primarily around a <a href="http://en.wikipedia.org/wiki/Register_machine">register-based</a> machine architecture, like Lua or Dalvik. In this manner, it is able to lower the number of copy instructions in the final machine code.</p>
+	
+	<h2><a name="load-instructions">Load Instructions</a></h2>
+	
+	<h3>LOADI dest, value</h3>
+	<p>Loads a constant ("value") into a register ("dest"). When writing this instruction longhand, the "value" term can be written either in hex (with the 0x- prefix) or in decimal. (ex. <code>LOADI R1 0x42</code>)</p> <!-- public void emitConstantLoadInstruction(int target, int value); -->
+	<h3>LOADT dest, name</h3>
+	<p>Loads a reflected type (with name "name") into a register ("dest"). This loaded type can then be used to call static methods (<code>+new</code>, <code>+initialize</code>, and the like), or for reflection. (ex. <code>LOADT R1 "Object" ; CALL R1 "new" R2</code>)</p>
+	<p><strong>Note:</strong> some implementations treat all static methods with static dispatch. This means that, for example, you wouldn't be able to use a type as the return value from a function. Example: <code>CALL R1 "choose_factory" R2 ; CALL R1 "new" R1</code></p>
+	<h3>LOADS dest, value</h3>
+	<p>Loads a constant string ("value") into a register ("dest"). Strings should be UTF-8, even though some VMs will simply treat it as a bit string.</p> 
+	<p><strong>Note:</strong> in serialized form, the "value" operand might be stored in a constant pool outside of the virtual machine instructions.</p>
+	
+	<h3>LOADC dest, number</h3>
+	<p>Loads a closure (with suffix "number") into a register ("dest"). Closure names are concatenated with the name of the current method, so <code>LOADC R1 4</code> in method <code>+initialize</code> loads closure <code>.initialize-0</code> of the current type.</p>
+	
+	<h3>LOADN dest</h3>
+	<p>Loads a constant null into a register ("dest").</p>
+	
+	<h2><a name="operations">Operations</a></h3>
+	<h3>ADD dest opa opb</h3> <!-- public void emitAddInstruction(int target, int a, int b); -->
+	<h3>COPY dest src</h3>
+	<h3>CALL dest name callee [operand0 [operand1...]]</h3>
+	
+	<h2><a name="program-flow-instructions">Program Flow Instructions</a></h2>
+	<h3>RETURN value</h3>
+	
+	<h2><a name="debugging-instructions">Debugging Instructions</a></h2>
+	<h3>TRACE value</h3>
+</body>
+</html>

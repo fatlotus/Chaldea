@@ -1,0 +1,16 @@
+application: chaldea
+language: java
+build_quiet: true
+
+operations:
+- operation: test
+  desc: Run all tests
+  type: launch_java
+  class_name: chaldea.tests.Runner
+  needed_for: git_commit
+  
+- operation: test
+  desc: Perform a GIT commit
+  type: git
+  command: commit
+  

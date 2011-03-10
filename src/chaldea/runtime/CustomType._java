@@ -1,0 +1,20 @@
+package chaldea.runtime;
+
+public class CustomType extends AbstractType {
+	private int totalSize;
+	private Type superClass;
+	private String name;
+	
+	public CustomType(String classNam, Type parentSuperClass) {
+		superClass = parentSuperClass;
+		name = classNam;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public int getSizeOfInstance() {
+		return totalSize + superClass.getSizeOfInstance();
+	}
+}

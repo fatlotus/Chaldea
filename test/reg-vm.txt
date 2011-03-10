@@ -1,0 +1,4 @@
+x = 5		# => LOAD R0 #5
+x += 10		# => LOAD R1 #10; ADD R0 R0 R1
+v = x		# => LOAD R1 R0
+print v		# => CALL R1

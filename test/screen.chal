@@ -1,0 +1,5 @@
+class Screen {
++ initialize {
+	native "#1", 1000
+}
+}

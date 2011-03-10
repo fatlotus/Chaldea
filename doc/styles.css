@@ -1,0 +1,9 @@
+html{background-color:#eee;}
+body{width:40em;margin:0 auto;}
+h1{font:bold 3em "Trebuchet MS",sans-serif;color:#222;}
+p{font:0.9em/2em Helvetica,sans-serif;padding:1em;}
+p a{color:#09c;}
+p a:hover{color:#07a;}
+h2{font:bold 1.3em "Trebuchet MS",sans-serif;}
+h3{font:bold 1em Monaco,monospace;}
+code{color:#333;padding:0.3em;margin:-0.3em;font:1.0em Monaco,monospace;}

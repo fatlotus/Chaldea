@@ -1,0 +1,42 @@
+class Person {
+- initialize(name) {
+	@name = name
+}
+- debug {
+	concat("My name is ", @name)
+}
+}
+
+class Object {
+- if(blk) {
+	call blk
+}
+- not { null }
+}
+
+class NullType {
+- if(blk)
+- not { 0 }
++ new { }
+}
+
+class Integer {
+- repeat(blk) {
+	if gt(self, 0) {
+		call blk
+		repeat add(self, -1), blk
+	}
+}
+}
+
+class String {
+- native {
+	print "** NATIVE BLOCKS DISABLED: **"
+}
+}
+
+singleton __launcher {
++ launch {
+	initialize Kernel
+}
+}

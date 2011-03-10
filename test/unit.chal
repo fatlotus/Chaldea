@@ -1,0 +1,88 @@
+require "test/sys"
+
+class String {
+- assert(condition) {
+	if not(condition) {
+		print concat(concat("* Please ensure ", self), ".")
+	}
+}
+}
+
+singleton Kernel {
++ initialize {
+	print "@--------------------------------------------------------------------@"
+	print "  Running unit tests..                                                "
+	test_closures Kernel
+	test_if_statement Kernel
+	test_null_literal Kernel
+	test_concatenation Kernel
+	test_state Kernel
+	test_loops Kernel
+	print "  Tests complete.                                                     "
+	print "@--------------------------------------------------------------------@"
+}
++ test_state {
+	tim = new Person, "Tim"
+	tiny_tim = tim
+	bob = new Person, "Bob"
+	
+	assert "that Tim is tim", eq(debug(tim), "My name is Tim")
+	assert "that Bob is bob", eq(debug(bob), "My name is Bob")
+	assert "that Tim is not Bob", not(eq(tim, bob))
+	assert "that Tim is Tim", eq(tim, tim)
+	assert "that Bob is Bob", eq(bob, bob)
+	assert "that Tiny Tim is another name for Tim", eq(tim, tiny_tim)
+	debug bob
+}
++ test_loops {
+	x = 0
+	repeat 4 {
+		x = add(x, 1)
+	}
+	assert "that repeat loops execute", not(eq(x, 0))
+	assert "that repeat loops do not have off-by-one errors", eq(x, 4)
+}
++ test_concatenation {
+	hello = "hello"
+	world = "world"
+	helloworld = "helloworld"
+	
+	assert "that not null is true", not(null)
+	assert "that HELLO != WORLD", not(eq(hello, world))
+	assert "that HELLO = HELLO", eq(hello, hello)
+	assert "that HELLO + WORLD = HELLOWORLD", eq(concat(hello, world), helloworld)
+}
++ test_null_literal {
+	empty = null
+	empty_as_block = call {
+		# hello, world!
+	}
+	empty_as_instance = new NullType
+	
+	assert "that (new NullType) is null", eq(empty_as_instance, empty)
+	assert "that null == null", eq(empty, empty)
+	assert "that the return value of an empty method is null", eq(empty, empty_as_block)
+}
++ test_if_statement {
+	ni = if gt(4, 5) {
+		42
+	}
+	
+	x = if gt(5, 4) {
+		42
+	}
+	
+	assert "that 5 > 4 and that 'if' returns values", eq(x, 42)
+	assert "that 42 and nil are not equal", not(eq(42, ni))
+	assert "that x and nil are not equal", not(eq(x, ni))
+}
++ test_closures {
+	x = 5
+	
+	call {
+		x = 10
+	}
+	
+	assert "that closures correctly modify local variables.", eq(x, 10)
+}
+}

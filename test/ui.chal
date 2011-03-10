@@ -1,0 +1,52 @@
+# class String {
+# - assert(test) {
+# 	assertion TestRunner, self, test
+# }
+# }
+# 
+# class TestRunner {
+# + assertion(label, value) {
+# 	if (value) {
+# 		print "success!"
+# 	} else {
+# 		print "failure!"
+# 	}
+# }
+# }
+
+class Object {
+- if(condition, alternative) {
+	call condition
+}
+}
+
+class Closure {
+- call_if_not_null {
+	call self
+}
+- else {
+	self
+}
+}
+
+class NullType {
+- if(condition, alternative) {
+	call_if_not_null alternative
+}
+- call_if_not_null { }
+}
+
+class Kernel {
++ initialize {
+	win = new Window
+	
+	button win, "Click me!" {
+		print "Adding a new button now..."
+		button win, "Now click me!" {
+			print "and another..."
+		}
+	}
+	
+	show win
+}
+}
