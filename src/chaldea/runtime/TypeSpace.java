@@ -3,6 +3,8 @@ package chaldea.runtime;
 import java.util.Map;
 import java.util.HashMap;
 
+import chaldea.CompilerTarget;
+
 public class TypeSpace {
 	public class AddedType {
 		private Type typeToAdd;
@@ -102,6 +104,12 @@ public class TypeSpace {
 	
 	public ChaldeaValue getNullValue() {
 		return nullType.getInstance();
+	}
+	
+	public void writeTypesInto(CompilerTarget target) {
+		for (Type t : types.values()) {
+			t.writeTo(target);
+		}
 	}
 	
 	public ReflectedValue reflectOn(String className) {

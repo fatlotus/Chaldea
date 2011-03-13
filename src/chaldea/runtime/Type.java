@@ -10,5 +10,6 @@ public interface Type {
 	public void addMethod(Method func);
 	public void methodDispatch(String methodName, CompilerTarget t);
 	public Method getMethod(String methodName);
+	public void writeTo(CompilerTarget t);
 	public boolean definesMethod(String methodName);
 }

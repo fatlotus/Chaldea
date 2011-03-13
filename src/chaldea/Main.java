@@ -7,6 +7,7 @@ import chaldea.runtime.Type;
 import chaldea.runtime.ReturnException;
 import chaldea.target.OptimizeTarget;
 import chaldea.target.LinkerTarget;
+import chaldea.target.MagaratheaTarget;
 import chaldea.target.DebugTarget;
 import chaldea.target.BranchTarget;
 import chaldea.target.EmulatorTarget;
@@ -23,8 +24,7 @@ public class Main {
 		
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		
-
-		ChaldeaParser parser = new ChaldeaParser(target, new File("test/unit.chal"));
+		ChaldeaParser parser = new ChaldeaParser(target, new File("test/hellochal.chal"));
 		
 		try {
 			parser.parse();
@@ -36,12 +36,17 @@ public class Main {
 		
 		Type launcher = types.getTypeWithName("__launcher");
 		
-		CompilerTarget output = new EmulatorTarget(types);
+		CompilerTarget compiler = new MagaratheaTarget();
+		
+		types.writeTypesInto(compiler);
+		
+		/* CompilerTarget output = new EmulatorTarget(types);
 		
 		try {
 			launcher.methodDispatch(".launch", output);
 		} catch (ReturnException e) { }
 		
+		*/
 		/*
 		CompilerTarget target = new BranchTarget(new DebugTarget(), new EmulatorTarget());
 		

@@ -18,7 +18,7 @@ public abstract class NativeMethod implements Method {
 	public int getNumberOfRegisters() { return 0; }
 	
 	public void evaluateInto(CompilerTarget target) {
-		throw new ChaldeaRuntimeError("native methods cannot be evaluated as VM instructions.");
+		System.err.println("** warning: native methods cannot be evaluated as VM instructions.");
 	}
 	
 	public boolean isNative() { return true; }

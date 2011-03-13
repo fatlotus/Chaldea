@@ -1,0 +1,17 @@
+class Kernel {
++ initialize {
+	print 72  # H
+	print 101 # e
+	print 108 # l
+	print 108 # l
+	print 111 # o
+	print 44  # ,
+	print 32  # 
+	print 87  # W
+	print 111 # o
+	print 114 # r
+	print 108 # l
+	print 100 # d
+	print 33  # !
+}
+}

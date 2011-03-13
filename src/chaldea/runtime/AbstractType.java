@@ -69,6 +69,14 @@ public abstract class AbstractType implements Type {
 		}
 	}
 	
+	@Override
+	public void writeTo(CompilerTarget t) {
+		for (Method m : methods.values()) {
+			m.evaluateInto(t);
+		}
+	}
+	
+	@Override
 	public String toString() {
 		StringBuilder output = new StringBuilder();
 		
