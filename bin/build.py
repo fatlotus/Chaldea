@@ -51,7 +51,7 @@ def _cd(directory):
 	os.chdir(directory)
 
 def _run(main_class=ROOT_CLASS):
-	_shell("java", "-cp", "build", main_class)
+	_shell("java", "-cp", "build:lib/magarathea.jar", main_class)
 
 def _class_path():
 	return "%s:." % ':'.join(_scan(os.path.join("..", "lib"), ".jar"))

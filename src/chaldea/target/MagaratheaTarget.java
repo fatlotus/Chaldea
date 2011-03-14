@@ -1,25 +1,137 @@
 package chaldea.target;
 
-import chaldea.*;
+import chaldea.CompilerTarget;
+import magarathea.Runner;
+import magarathea.Assembler;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 public class MagaratheaTarget extends CompatCompilerTarget {
 	private final int STACK_PTR_ADDRESS = 0x3000;
 	private final int STATIC_ADDRESS = 0x2000;
 	private final int SCREEN_PTR = 0x4000;
+
+	interface Assemblee {
+		int getSize();
+		void assemble(Assembler asm, ByteArrayOutputStream outputStream);
+	}
+	
+	class TupleSegment implements Assemblee {
+		String a;
+		String b;
+		
+		TupleSegment(String x, String y) {
+			a = x;
+			b = y;
+		}
+		
+		public int getSize() {
+			return 8;
+		}
+		
+		public void assemble(Assembler asm, ByteArrayOutputStream outputStream) {
+			String lhs;
+			
+			if (a.charAt(0) == '!') {
+				String label = a.substring(1);
+				
+				if (!labels.containsKey(label)) {
+					throw new RuntimeException("undefined label \"" + label + "\"");
+				}
+				
+				lhs = "#" + labels.get(label);
+			} else {
+				lhs = a;
+			}
+			
+			asm.processInstruction(lhs, b);
+		}
+	}
+	
+	class DataSegment implements Assemblee {
+		byte[] data;
+		
+		public DataSegment(byte[] value) {
+			data = value;
+		}
+		
+		public int getSize() {
+			return data.length;
+		}
+		
+		public void assemble(Assembler asm, ByteArrayOutputStream outputStream) {
+			outputStream.write(data, 0, data.length);
+		}
+	}
+	
+	private HashMap<String, Integer> labels;
+	private ArrayList<Assemblee> instructions;
+	private int currentOffset;
+	private int stackHeight;
+	private int nonce;
+	
+	public MagaratheaTarget() {
+		labels = new HashMap<String, Integer>();
+		instructions = new ArrayList<Assemblee>();
+		nonce = 0;
+		
+		asm("#" + STACK_PTR_ADDRESS, "mem.addr");
+		asm("#" + 0x5000, "mem.write");
+		asm("!Kernel.initialize", "jmp.branch");
+	}
 	
 	@Override
 	public void emitFunctionEnter(String container, String identifier, int arguments, int registers) {
-		System.out.println("!" + container + identifier);
+		emitLabel(container + identifier);
+		
+		stackHeight = registers;
+	}
+	
+	public void execute() {
+		ByteArrayOutputStream ramDestination = new ByteArrayOutputStream();
+		
+		Assembler assembler = new Assembler(ramDestination);
+		
+		for (Assemblee segment : instructions) {
+			segment.assemble(assembler, ramDestination);
+		}
+		
+		Runner.runWithBytecode(ramDestination.toByteArray());
+	}
+	
+	protected void inst(Assemblee asm) {
+		currentOffset += asm.getSize();
+		instructions.add(asm);
 	}
 	
 	protected void asm(String lhs, String rhs) {
-		System.out.println("\t" + lhs + "\t" + rhs);
+		inst(new TupleSegment(lhs, rhs));
 	}
 	
-	protected String getRegister(int reg) {
-		asm("#" + STATIC_ADDRESS + reg, "mem.addr");
-		asm("#0", "mem.read");
-		return "mem.result";
+	protected String emitLabel() {
+		String label = "NONCE" + (nonce++);
+		
+		emitLabel(label);
+		return label;
+	}
+	
+	protected void emitLabel(String label) {
+		if (labels.containsKey(label)) {
+			throw new RuntimeException("duplicate label \"" + label + "\"");
+		} else {
+			labels.put(label, currentOffset);
+		}
+	}
+	
+	protected void getRegister(int register) {
+		asm("#" + STACK_PTR_ADDRESS, "mem.read");
+		asm("mem.result", "alu.op");
+		asm("#" + register, "alu.add");
+		asm("alu.result", "mem.read");
+		/* "mem.result"; */
 		
 		/* asm("#" + STACK_PTR, "mem.addr");
 		asm("#0", "mem.read");
@@ -30,9 +142,11 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 		asm("#0"); */
 	}
 	
-	protected void setRegister(String value, int register) {
-		asm("#" + STATIC_ADDRESS + reg, "mem.addr");
-		asm(value, "mem.write");
+	protected void setRegister(int register) {
+		asm("#" + STACK_PTR_ADDRESS, "mem.read");
+		asm("mem.result", "alu.op");
+		asm("#" + register, "alu.add");
+		asm("alu.result", "mem.addr");
 		
 		/* asm("#" + STACK_PTR, "mem.addr");
 		asm("#0", "mem.read");
@@ -44,13 +158,12 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 	
 	@Override
 	public void emitConstantLoadInstruction(int target, int value) {
-		setRegister("#" + value, target);
+		setRegister(target);
+		asm("#" + value, "mem.write");
 	}
 	
 	@Override
-	public void emitAddInstruction(int target, int a, int b) {
-		
-	}
+	public void emitAddInstruction(int target, int a, int b) { }
 	
 	@Override
 	public void emitCopyInstruction(int target, int source) {
@@ -65,7 +178,9 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 		asm("mem.result", "mem.write");
 		*/
 		
-		setRegister(getRegister(source), target);
+		setRegister(target);
+		getRegister(source);
+		asm("mem.result", "mem.write");
 	}
 	
 	@Override
@@ -74,13 +189,37 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 			asm("#" + SCREEN_PTR, "mem.read");
 			asm("mem.result", "alu.op");
 			asm("#" + 0x8000, "alu.add");
-			asm("alu.op", "mem.addr");
-			asm("", "mem.write");
+			asm("alu.result", "mem.addr");
+			getRegister(target);
+			asm("mem.result", "mem.write");
+			
+			asm("#" + SCREEN_PTR, "mem.read");
+			asm("mem.result", "alu.op");
+			asm("#" + SCREEN_PTR, "mem.addr");
+			asm("#1", "alu.add");
+			asm("alu.result", "mem.write");
+			
+			/*
+			asm("#" + 0x8000, "mem.addr");
+			asm(result, "mem.write");
+			*/
+		} else if (methodName.equals("say_42")) {
+			asm("#" + STACK_PTR_ADDRESS, "mem.read");
+			asm("#" + STACK_PTR_ADDRESS, "mem.write");
+			asm("mem.result", "alu.op");
+			asm("#" + (stackHeight + 1), "alu.add");
+			asm("alu.result", "mem.write");
+			asm("!Integer.say_42", "jmp.branch");
+			
+			emitLabel("RETURN" + (nonce++));
 		}
 	}
 	
 	@Override
-	public void emitReturn(int register) { }
+	public void emitReturn(int register) {
+		String label = emitLabel();
+		asm("!" + label, "jmp.branch");
+	}
 	
 	@Override
 	public void emitFunctionExit() { }
@@ -98,7 +237,8 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 	
 	@Override
 	public void emitLoadNull(int register) {
-		setRegister("#0", register);
+		setRegister(register);
+		asm("#0", "mem.write");
 	}
 	
 	@Override

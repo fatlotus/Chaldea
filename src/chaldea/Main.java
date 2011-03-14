@@ -36,9 +36,11 @@ public class Main {
 		
 		Type launcher = types.getTypeWithName("__launcher");
 		
-		CompilerTarget compiler = new MagaratheaTarget();
+		MagaratheaTarget compiler = new MagaratheaTarget();
 		
 		types.writeTypesInto(compiler);
+		
+		compiler.execute();
 		
 		/* CompilerTarget output = new EmulatorTarget(types);
 		
