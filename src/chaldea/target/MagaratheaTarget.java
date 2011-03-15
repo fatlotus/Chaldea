@@ -78,6 +78,7 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 		instructions = new ArrayList<Assemblee>();
 		nonce = 0;
 		
+		asm("#0", "jmp.branch");
 		asm("#" + STACK_PTR_ADDRESS, "mem.addr");
 		asm("#" + 0x5000, "mem.write");
 		asm("!Kernel.initialize", "jmp.branch");
@@ -109,6 +110,7 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 	
 	protected void asm(String lhs, String rhs) {
 		inst(new TupleSegment(lhs, rhs));
+		System.out.println("\t" + lhs + "\t" + rhs);
 	}
 	
 	protected String emitLabel() {
@@ -129,7 +131,13 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 	protected void getRegister(int register) {
 		asm("#" + STACK_PTR_ADDRESS, "mem.read");
 		asm("mem.result", "alu.op");
-		asm("#" + register, "alu.add");
+		
+		if (register > 0) {
+			asm("#" + register, "alu.add");
+		} else if (register < 0) {
+			asm("#" + (-register), "alu.sub");
+		}
+		
 		asm("alu.result", "mem.read");
 		/* "mem.result"; */
 		
@@ -145,7 +153,13 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 	protected void setRegister(int register) {
 		asm("#" + STACK_PTR_ADDRESS, "mem.read");
 		asm("mem.result", "alu.op");
-		asm("#" + register, "alu.add");
+		
+		if (register > 0) {
+			asm("#" + register, "alu.add");
+		} else if (register < 0) {
+			asm("#" + (-register), "alu.sub");
+		}
+		
 		asm("alu.result", "mem.addr");
 		
 		/* asm("#" + STACK_PTR, "mem.addr");
@@ -204,21 +218,35 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 			asm(result, "mem.write");
 			*/
 		} else if (methodName.equals("say_42")) {
+			int value = nonce++;
+			
 			asm("#" + STACK_PTR_ADDRESS, "mem.read");
-			asm("#" + STACK_PTR_ADDRESS, "mem.write");
 			asm("mem.result", "alu.op");
 			asm("#" + (stackHeight + 1), "alu.add");
+			asm("#" + STACK_PTR_ADDRESS, "mem.addr");
 			asm("alu.result", "mem.write");
 			asm("!Integer.say_42", "jmp.branch");
 			
-			emitLabel("RETURN" + (nonce++));
+			setRegister(-1);
+			asm("!RETURN" + value, "mem.write");
+			
+			emitLabel("RETURN" + value);
+			
+			asm("#" + STACK_PTR_ADDRESS, "mem.read");
+			asm("mem.result", "alu.op");
+			asm("#" + (stackHeight + 1), "alu.sub");
+			asm("#" + STACK_PTR_ADDRESS, "mem.addr");
+			asm("alu.result", "mem.write");
+		} else if (methodName.equals("exit")) {
+			String label = emitLabel();
+			asm("!" + label, "jmp.branch");
 		}
 	}
 	
 	@Override
 	public void emitReturn(int register) {
-		String label = emitLabel();
-		asm("!" + label, "jmp.branch");
+		getRegister(-1);
+		asm("mem.result", "jmp.branch");
 	}
 	
 	@Override
@@ -242,7 +270,9 @@ public class MagaratheaTarget extends CompatCompilerTarget {
 	}
 	
 	@Override
-	public void emitSourceLine(String sourceFile, int lineNumber) { }
+	public void emitSourceLine(String sourceFile, int lineNumber) {
+		asm("#" + lineNumber, "alu.print");
+	}
 	
 	@Override
 	public void emitStateVariable(int register, int subject, String slotNumber) { }
